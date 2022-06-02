@@ -17,6 +17,7 @@ db.once('open', () => {
 });
 
 const authRouter = require('./routes/auth-api');
+const sessionRouter = require('./routes/session');
 
 const app = express();
 
@@ -27,5 +28,6 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/auth-api', authRouter);
+app.use('/session', sessionRouter);
 
 module.exports = app;

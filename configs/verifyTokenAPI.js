@@ -1,14 +1,15 @@
 const jwt = require('jsonwebtoken');
-const { SECRET_KEY_API } = require('./secretKeyAPI');
+const secretKey = require('./secretKey.json');
 
 const verifyTokenAPI = (req, res, next) => {
-  const token = req.header('token-api');
+  const token = req.header('api-key');
   try {
-    const verified = jwt.verify(token, SECRET_KEY_API);
+    const verified = jwt.verify(token, secretKey.API);
     req.user = verified;
     next();
   } catch (error) {
     res.status(400).json({
+      error: false,
       status: res.statusCode,
       message: 'Invalid Token API',
     });

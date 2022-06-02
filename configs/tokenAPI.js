@@ -1,3 +1,0 @@
-const TOKEN_API = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.xmkUK_GYfENkOYqZa1NnNTy5IwTX9bS0hPFEYYR7jlo';
-
-module.exports = TOKEN_API;

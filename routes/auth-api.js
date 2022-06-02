@@ -5,8 +5,9 @@ const uniqid = require('uniqid');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Session = require('../models/Session');
 const { registerValidation } = require('../configs/validation');
-const { SECRET_KEY, SECRET_KEY_USER } = require('../configs/secretKeyUser');
+const secretKey = require('../configs/secretKey.json');
 
 const { verifyTokenAPI } = require('../configs/verifyTokenAPI');
 
@@ -16,6 +17,7 @@ router.post('/register', verifyTokenAPI, async (req, res) => {
   const { error } = registerValidation(req.body);
   if (error) {
     return res.status(400).json({
+      error: true,
       status: res.statusCode,
       message: error.details[0].message,
     });
@@ -25,6 +27,7 @@ router.post('/register', verifyTokenAPI, async (req, res) => {
   const emailExist = await User.findOne({ email: req.body.email });
   if (emailExist) {
     return res.status(400).json({
+      error: true,
       status: res.statusCode,
       message: 'Email already registered',
     });
@@ -48,10 +51,14 @@ router.post('/register', verifyTokenAPI, async (req, res) => {
   // try catch save data user
   try {
     const saveUser = await user.save();
-    res.json(saveUser);
+    res.json({
+      error: false,
+      message: 'User Created',
+    });
   } catch (error) {
     res.status(400).json({
-      status: 400,
+      error: true,
+      status: res.statusCode,
       message: 'Failed to add User',
     });
   }
@@ -60,9 +67,10 @@ router.post('/register', verifyTokenAPI, async (req, res) => {
 /* POST login page */
 router.post('/login', verifyTokenAPI, async (req, res, next) => {
   // If email not registered
-  const user = await User.findOne({ mail: req.body.email });
+  const user = await User.findOne({ email: req.body.email });
   if (!user) {
     return res.status(400).json({
+      error: true,
       statusCode: res.statusCode,
       message: 'Sorry, we could not find your email.',
     });
@@ -70,24 +78,58 @@ router.post('/login', verifyTokenAPI, async (req, res, next) => {
 
   // Check Password
   const validPassword = await bcrypt.compare(req.body.password, user.password);
-  console.log(validPassword);
   if (!validPassword) {
     return res.status(400).json({
+      error: true,
       status: res.statusCode,
       message: 'Wrong Password!',
     });
   }
 
   // If email & password are correct
-
   const token = jwt.sign({
+    loginId: uniqid(),
     id: user.userId,
     email: user.email,
-  }, SECRET_KEY_USER);
+  }, secretKey.SESSION);
 
-  res.header(token).json({
-    token,
+  const session = await new Session({
+    sessionId: token,
   });
+  await session.save();
+  res.header(token).json({
+    error: false,
+    message: 'success',
+    loginResult: {
+      userId: user.userId,
+      name: user.name,
+      token,
+    },
+  });
+});
+
+router.post('/logout', verifyTokenAPI, async (req, res, next) => {
+  const loadSession = await Session.findOne({ sessionId: req.body.sessionId });
+  if (!loadSession) {
+    return res.status(400).json({
+      error: true,
+      status: res.statusCode,
+      message: 'Token is not found',
+    });
+  }
+  try {
+    await Session.deleteOne(loadSession);
+    res.json({
+      error: false,
+      message: 'Session is Deleted from server',
+    });
+  } catch (error) {
+    res.status(400).json({
+      error: true,
+      status: res.statusCode,
+      message: "Data can't be Delete",
+    });
+  }
 });
 
 module.exports = router;
