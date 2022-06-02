@@ -95,6 +95,11 @@ router.post('/login', verifyTokenAPI, async (req, res, next) => {
 
   const session = await new Session({
     sessionId: token,
+    userInfo: {
+      userId: user.userId,
+      name: user.name,
+      email: user.email,
+    },
   });
   await session.save();
   res.header(token).json({
