@@ -4,10 +4,10 @@ const router = express.Router();
 const uniqid = require('uniqid');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 const User = require('../models/User');
 const Session = require('../models/Session');
 const { registerValidation } = require('../configs/validation');
-const secretKey = require('../configs/secretKey.json');
 
 const { verifyTokenAPI } = require('../configs/verifyTokenAPI');
 
@@ -52,6 +52,7 @@ router.post('/register', verifyTokenAPI, async (req, res) => {
   try {
     const saveUser = await user.save();
     res.json({
+      status: res.statusCode,
       error: false,
       message: 'User Created',
     });
@@ -91,9 +92,10 @@ router.post('/login', verifyTokenAPI, async (req, res, next) => {
     loginId: uniqid(),
     id: user.userId,
     email: user.email,
-  }, secretKey.SESSION);
+  }, process.env.SESSION);
 
   const session = await new Session({
+    status: res.statusCode,
     sessionId: token,
     userInfo: {
       userId: user.userId,
@@ -103,6 +105,7 @@ router.post('/login', verifyTokenAPI, async (req, res, next) => {
   });
   await session.save();
   res.header(token).json({
+    status: res.statusCode,
     error: false,
     message: 'success',
     loginResult: {
@@ -125,6 +128,7 @@ router.post('/logout', verifyTokenAPI, async (req, res, next) => {
   try {
     await Session.deleteOne(loadSession);
     res.json({
+      status: res.statusCode,
       error: false,
       message: 'Session is Deleted from server',
     });

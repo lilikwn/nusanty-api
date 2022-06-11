@@ -4,7 +4,9 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://localhost:27017/coba-users', {
+require('dotenv').config();
+
+mongoose.connect(process.env.DB_CONNECTION, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -18,6 +20,7 @@ db.once('open', () => {
 
 const authRouter = require('./routes/auth-api');
 const sessionRouter = require('./routes/session');
+const articleRouter = require('./routes/article-api');
 
 const app = express();
 
@@ -29,5 +32,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/auth-api', authRouter);
 app.use('/session', sessionRouter);
+app.use('/article-api', articleRouter);
 
 module.exports = app;
