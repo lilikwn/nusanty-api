@@ -20,9 +20,6 @@ const articleSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  photoUrl: {
-    type: String,
-    required: true,
-  },
+  photoUrl: [String]
 });
 module.exports = mongoose.model('Article', articleSchema);

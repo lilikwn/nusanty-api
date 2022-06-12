@@ -6,8 +6,26 @@ const Article = require('../models/Article');
 const { verifyTokenAPI } = require('../configs/verifyTokenAPI');
 const { upload } = require('../controller/fileController');
 
+router.get('/article', verifyTokenAPI, async (req, res, next) => {
+  const articles = await Article.find({}, {_id: 0, __v:0})
+  if(!articles){
+    return res.status(400).json({
+      error: true,
+      status: res.statusCode,
+      message: "No Article"
+    })
+  }
+  return res.status(200).json({
+    error: false,
+    status: res.statusCode,
+    message: "Stories fetched successfully",
+    articles
+  })
+})
+
 router.post('/article', verifyTokenAPI, async (req, res, next) => {
-  const articleIdExist = await Article.findOne({ id: req.body.id });
+  const id = req.body.id.toLowerCase()
+  const articleIdExist = await Article.findOne({ id });
   if (articleIdExist) {
     return res.status(400).json({
       error: true,
@@ -16,7 +34,7 @@ router.post('/article', verifyTokenAPI, async (req, res, next) => {
     });
   }
   const article = await new Article({
-    id: req.body.id,
+    id,
     title: req.body.title,
     location: req.body.location,
     description: req.body.description,
@@ -39,8 +57,8 @@ router.post('/article', verifyTokenAPI, async (req, res, next) => {
 });
 
 router.get('/article/:id', verifyTokenAPI, async (req, res, next) => {
-  const { id } = req.params;
-  const article = await Article.findOne({ id });
+  const id = req.params.id.toLowerCase();
+  const article = await Article.findOne({ id : id });
   if (!id) {
     return res.status(400).json({
       error: true,
